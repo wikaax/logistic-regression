@@ -7,8 +7,7 @@ def sigmoid(x):
 
 class LogisticRegression():
 
-    # learningRate (0.1 -> 0.0001, numberOfIterations
-    def __init__(self, lr=0.001, n_iters=1000):
+    def __init__(self, lr=0.001, n_iters=1000):     # learningRate (0.1 -> 0.0001), number of iterations
         self.lr = lr;
         self.n_iters = n_iters;
         self.weights = None;
@@ -16,21 +15,25 @@ class LogisticRegression():
 
     def fit(self, X, y):
         n_samples, n_features = X.shape
-        self.weights = np.zeros(n_features)  # Initialize weight as zero
-        self.bias = 0;                          # Initialize bias as zero
+        self.weights = np.zeros(n_features)     # Initialize weights as zero
+        self.bias = 0                           # Initialize bias as zero
 
+        # Prediction
         for _ in range(self.n_iters):
-            linear_predictions = np.dot(X, self.weights) + self.bias
-            predictions = sigmoid(linear_predictions)
+            linear_predictions = np.dot(X, self.weights) + self.bias    # linear regression
+            predictions = sigmoid(linear_predictions)                   # linear regression in sigmoid fun
 
-            dw = (1/n_samples) * np.dot(X.T, (predictions - y))
-            db = (1/n_samples) * np.sum(predictions - y)
+            # Calculating the gradient
+            # np.dot already does a sum and result is one number
+            dw = (1/n_samples) * np.dot(X.T, (predictions - y))         # gradient for weights
+            db = (1/n_samples) * np.sum(predictions - y)                # gradient for bias
 
-            self.weights = self.weights - self.lr*dw
-            self.bias =  self.bias - self.lr*db
+            # Updating weights and bias
+            self.weights = self.weights - self.lr * dw
+            self.bias =  self.bias - self.lr * db
 
     def predict(self, X):
         linear_predictions = np.dot(X, self.weights) + self.bias
         y_predictions = sigmoid(linear_predictions)
-        class_pred = [0 if y<=0.5 else 1 for y in y_predictions]   # for every y in y_pred
-        return class_pred
+        class_predictions = [0 if y<=0.5 else 1 for y in y_predictions]
+        return class_predictions

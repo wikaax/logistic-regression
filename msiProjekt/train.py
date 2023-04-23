@@ -16,7 +16,11 @@ X_train, X_test, y_train, y_test = train_test_split(
     test_size = 0.2,
     random_state = 1234)
 
-clf = LogisticRegression(lr=0.01) # Classifier
+fig = plt.figure(figsize=(8, 6))
+plt.scatter(X[:, 0], y, color="b", marker ="o", s = 30)
+plt.show()
+
+clf = LogisticRegression(lr=0.01)       # Classifier
 clf.fit(X_train, y_train)
 y_predictions = clf.predict(X_test)
 
