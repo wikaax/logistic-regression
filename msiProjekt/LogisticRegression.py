@@ -7,7 +7,7 @@ def sigmoid(x):
 
 class LogisticRegression():
 
-    def __init__(self, lr=0.001, n_iters=1000):     # learningRate (0.1 -> 0.0001), number of iterations
+    def __init__(self, lr=0.01, n_iters=1000):     # learningRate (0.1 -> 0.0001), number of iterations
         self.lr = lr;
         self.n_iters = n_iters;
         self.weights = None;
@@ -21,7 +21,7 @@ class LogisticRegression():
         # Prediction
         for _ in range(self.n_iters):
             linear_predictions = np.dot(X, self.weights) + self.bias    # linear regression
-            predictions = sigmoid(linear_predictions)                   # linear regression in sigmoid fun
+            predictions = sigmoid(linear_predictions)                   # linear regression in sigmoid function
 
             # Calculating the gradient
             # np.dot already does a sum and result is one number
