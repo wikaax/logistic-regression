@@ -1,7 +1,6 @@
 import numpy as np
 
-# Initialize sigmoid function
-# s(x) = 1/(1+e^(-x))
+# initialize sigmoid function
 def sigmoid(x):
     return 1/(1+np.exp(-x))
 
@@ -37,3 +36,6 @@ class LogisticRegression():
         y_predictions = sigmoid(linear_predictions)
         class_predictions = [0 if y<=0.5 else 1 for y in y_predictions]
         return class_predictions
+
+    def get_params(self, deep=True):
+        return {'lr': self.lr, 'n_iters': self.n_iters}
