@@ -1,10 +1,11 @@
 import numpy as np
+from sklearn.base import BaseEstimator, ClassifierMixin
 
 # initialize sigmoid function
 def sigmoid(x):
     return 1/(1+np.exp(-x))
 
-class LogisticRegression():
+class LogisticRegression(BaseEstimator, ClassifierMixin):
 
     def __init__(self, lr=0.01, n_iters=1000):     # learningRate (0.1 -> 0.0001), number of iterations
         self.lr = lr;
@@ -23,13 +24,12 @@ class LogisticRegression():
             predictions = sigmoid(linear_predictions)                   # linear regression in sigmoid function
 
             # Calculating the gradient
-            # np.dot already does a sum and result is one number
             dw = (1/n_samples) * np.dot(X.T, (predictions - y))         # gradient for weights
             db = (1/n_samples) * np.sum(predictions - y)                # gradient for bias
 
             # Updating weights and bias
             self.weights = self.weights - self.lr * dw
-            self.bias =  self.bias - self.lr * db
+            self.bias = self.bias - self.lr * db
 
     def predict(self, X):
         linear_predictions = np.dot(X, self.weights) + self.bias
