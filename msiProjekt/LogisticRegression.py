@@ -3,11 +3,11 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 
 # initialize sigmoid function
 def sigmoid(x):
-    return 1/(1+np.exp(-x))
+    return 1 / (1 + np.exp(-x))
 
 class LogisticRegression(BaseEstimator, ClassifierMixin):
 
-    def __init__(self, lr=0.01, n_iters=1000):     # learningRate (0.1 -> 0.0001), number of iterations
+    def __init__(self, lr, n_iters):     # learningRate (0.1 -> 0.0001), number of iterations
         self.lr = lr;
         self.n_iters = n_iters;
         self.weights = None;
