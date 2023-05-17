@@ -3,10 +3,10 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
 
-
 from sklearn.decomposition import PCA
 
-def pca_feature_selection(X, y, rkf):
+
+def pca_feature_selection(X, y, col_names, rkf):
     # list of n_features to find the best
     n_features_list = [5, 10, 15]
 
@@ -39,12 +39,13 @@ def pca_feature_selection(X, y, rkf):
     X_selected = pca.fit_transform(X)
 
     # retrieve selected feature names
-    selected_features = [f"PCA_{i+1}" for i in range(best_n_feature)]
+    selected_features = [f"PCA_{i + 1}" for i in range(best_n_feature)]
 
     # save selected features to file
     np.save('selected_features_pca.npy', selected_features)
 
     return X_selected
+
 
 def feature_selection(X, y, col_names, rkf):
     # list of n_features to find the best
