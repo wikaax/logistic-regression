@@ -8,7 +8,7 @@ from sklearn.decomposition import PCA
 
 def pca_feature_selection(X, y, col_names, rkf):
     # list of n_features to find the best
-    n_features_list = [5, 10, 15]
+    n_features_list = [5, 10, 15, 20, 25, 30]
 
     # storing results of n_features experiment
     results = {}
@@ -49,7 +49,7 @@ def pca_feature_selection(X, y, col_names, rkf):
 
 def feature_selection(X, y, col_names, rkf):
     # list of n_features to find the best
-    n_features_list = [5, 10, 15]
+    n_features_list = [5, 10, 15, 20]
 
     # storing results of n_features experiment
     results = {}
@@ -85,4 +85,6 @@ def feature_selection(X, y, col_names, rkf):
     # save selected features to file
     np.save('selected_features.npy', selected_features)
 
+    for n_features, accuracy in results.items():
+        print(f"Number of Features: {n_features}, Accuracy: %.3f" % accuracy)
     return X_selected

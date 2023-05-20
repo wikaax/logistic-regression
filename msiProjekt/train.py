@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
 
 from LogisticRegression import LogisticRegression
 from msiProjekt.cross_validation_experiment import perform_cross_val
@@ -58,7 +59,8 @@ lr = LogisticRegression(lr=0.001, n_iters=100)
 classifiers = {'LR': lr,
                'kNN': KNeighborsClassifier(),
                'DTC': DecisionTreeClassifier(),
-               'SVM': svm.SVC()
+               'SVM': svm.SVC(),
+               'GNB': GaussianNB()
                }
 
 # cross validation experiment
@@ -109,6 +111,6 @@ n_iters_keys = n_iters_experiment.files
 
 # print results for each key
 for key in n_iters_keys:
-    print(f"Results for {key}: ", n_iters_experiment[key])
+    print(f"Results for {key}: %.3f" % n_iters_experiment[key])
 
 t_test(cross_validation)

@@ -4,7 +4,7 @@ from scipy.stats import ttest_rel
 
 def t_test(results):
     alpha = 0.5
-    X = results.reshape(-1, 4)
+    X = results.reshape(-1, 5)
     n_classifiers = X.shape[1]
 
     t_matrix = np.zeros((n_classifiers, n_classifiers))
