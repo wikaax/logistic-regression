@@ -8,7 +8,7 @@ from sklearn.decomposition import PCA
 
 def pca_feature_selection(X, y, col_names, rkf):
     # list of n_features to find the best
-    n_features_list = [5, 10, 15, 20, 25, 30]
+    n_features_list = [5, 10, 15, 20]
 
     # storing results of n_features experiment
     results = {}

@@ -98,7 +98,6 @@ selected_features_pca = np.load('selected_features_pca.npy')
 cross_validation = np.load('cross_validation_scores.npy')
 predictions = np.load('predictions.npy')
 n_iters_experiment = np.load('number_of_iterations_results.npz', allow_pickle=True)
-a = 0
 
 # print selected features
 print("Selected features:")
