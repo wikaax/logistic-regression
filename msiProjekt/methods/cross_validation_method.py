@@ -3,8 +3,8 @@ from sklearn.metrics import accuracy_score
 
 
 def perform_cross_val(classifiers, rkf, X, y):
-
     acc_scores = np.zeros(shape=[len(classifiers), rkf.get_n_splits()])
+    y_pred_lr = []
 
     for i, (train, test) in enumerate(rkf.split(X, y)):
         for j, (clf_name, clf) in enumerate(classifiers.items()):

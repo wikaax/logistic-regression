@@ -27,4 +27,6 @@ def t_test(results):
 
     final_matrix = b2_matrix * b_matrix
     print(final_matrix)
-    print(t_matrix)
+
+    # save t_test results
+    np.save('t_test_results.npy', final_matrix)

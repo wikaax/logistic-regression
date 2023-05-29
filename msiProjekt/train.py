@@ -1,3 +1,5 @@
+import pickle
+
 import numpy as np
 import pandas as pd
 import warnings
@@ -7,15 +9,16 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.impute import SimpleImputer
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, roc_curve
 import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
 
-from LogisticRegression import LogisticRegression
-from msiProjekt.cross_validation_experiment import perform_cross_val
-from msiProjekt.feature_selection_experiment import feature_selection, pca_feature_selection
-from msiProjekt.t_test import t_test
+from msiProjekt.experiments.feature_selection_experiment import feature_selection, pca_feature_selection
+from msiProjekt.experiments.iteration_experiment import find_best_n_iter
+from msiProjekt.methods.cross_validation_method import perform_cross_val
+from msiProjekt.methods.logistic_regression_method import LogisticRegression
+from msiProjekt.methods.t_test_method import t_test
 
 # suppress warnings
 warnings.filterwarnings('ignore')
@@ -50,7 +53,7 @@ X_selected = feature_selection(X, y, col_names_encoded, rkf)
 X_selected_PCA = pca_feature_selection(X, y, col_names_encoded, rkf)
 
 # find and return the best number of iterations, save results to file
-#best_n_iter = find_best_n_iter(X_selected, rkf, y)
+# best_n_iter = find_best_n_iter(X_selected, rkf, y)
 
 # create a classifier
 lr = LogisticRegression(lr=0.001, n_iters=100)
@@ -70,34 +73,57 @@ scores = perform_cross_val(classifiers, rkf, X_selected, y)
 lr.fit(X_selected, y)
 y_predictions = lr.predict(X_selected)
 
-# save predictions to file
-np.save('predictions.npy', y_predictions)
-
-# unclassified data plot
-plt.scatter(data['Age'], y, color="b", marker="o", s=30)
-plt.title("Niesklasyfikowane dane")
-plt.xlabel("Age")
-plt.ylabel("Survived")
-plt.show()
-
-# classified data plot
-colors = np.array(['r', 'g'])  # green -> survived
-plt.scatter(data['Age'], y_predictions, c=colors[y_predictions], s=30)
-plt.title("Sklasyfikowane dane")
-plt.xlabel("Age")
-plt.ylabel("Survived")
-plt.show()
-
-# print classification report and confusion matrix
-print(confusion_matrix(y, y_predictions))
-print(classification_report(y, y_predictions))
-
+# RESULTS ANALYSIS
 # load saved files and analyze results
 selected_features = np.load('selected_features.npy')
 selected_features_pca = np.load('selected_features_pca.npy')
 cross_validation = np.load('cross_validation_scores.npy')
 predictions = np.load('predictions.npy')
+# predictions = np.load('y_pred_LR.npy')
 n_iters_experiment = np.load('number_of_iterations_results.npz', allow_pickle=True)
+
+# print classification report and confusion matrix
+print(confusion_matrix(y, predictions))
+print(classification_report(y, predictions))
+
+# confusion matrix plot
+conf_mat = confusion_matrix(y, y_predictions)
+plt.imshow(conf_mat, interpolation='nearest', cmap=plt.cm.Blues)
+plt.title("Confusion matrix")
+plt.colorbar()
+plt.xticks([0, 1], ['Expected: 0', 'Expected: 1'])
+plt.yticks([0, 1], ['Predicted: 0', 'Predicted: 1'])
+plt.show()
+
+# Group by Pclass and Survived
+grouped_data = data.groupby(['Pclass', 'Survived']).size().unstack()
+# Create a histogram
+fig, ax = plt.subplots()
+bar_width = 0.4
+index = np.arange(len(grouped_data.index))
+rects1 = ax.bar(index, grouped_data[0], bar_width, label="Didn't survive")
+rects2 = ax.bar(index + bar_width, grouped_data[1], bar_width, label='Survived')
+ax.set_xticks(index + bar_width / 2)
+ax.set_xticklabels(grouped_data.index)
+ax.set_ylabel('Number of people')
+ax.set_title('Dependence of survival on ticket class (Pclass)')
+ax.legend()
+plt.show()
+
+# Obliczanie wartości fpr (False Positive Rate), tpr (True Positive Rate) i progów dla krzywej ROC
+fpr, tpr, thresholds = roc_curve(y, y_predictions)
+
+# Obliczanie obszaru pod krzywą ROC (AUC)
+auc = roc_auc_score(y, y_predictions)
+
+# Wykres krzywej ROC
+plt.plot(fpr, tpr, label=f'LR (AUC = {auc:.2f})')
+plt.plot([0, 1], [0, 1], 'k--')  # Linia referencyjna
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Krzywa ROC')
+plt.legend()
+plt.show()
 
 # print selected features
 print("Selected features:")
@@ -106,10 +132,7 @@ print("Selected PCA:")
 print(selected_features_pca)
 
 # print number of iters experiment results
-# get keys of the saved data
-n_iters_keys = n_iters_experiment.files
-
-# print results for each key
+n_iters_keys = n_iters_experiment
 for key in n_iters_keys:
     print(f"Results for {key}: %.3f" % n_iters_experiment[key])
 

@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.model_selection import cross_val_score
-from msiProjekt.LogisticRegression import LogisticRegression
+from msiProjekt.methods.logistic_regression_method import LogisticRegression
 
 
 def find_best_n_iter(X, rkf, y):
