@@ -13,7 +13,3 @@ cross_validation_experiment.py - performing cross validation
 feature_selection_experiment.py - selecting k features that are significant
 
 iteration_experiment.py - finding best number of iteration to optimize our model
-
-t_test.py - performing t_test
-
-
