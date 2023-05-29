@@ -1,5 +1,3 @@
-import pickle
-
 import numpy as np
 import pandas as pd
 import warnings
@@ -110,13 +108,9 @@ ax.set_title('Dependence of survival on ticket class (Pclass)')
 ax.legend()
 plt.show()
 
-# Obliczanie wartości fpr (False Positive Rate), tpr (True Positive Rate) i progów dla krzywej ROC
+# ROC
 fpr, tpr, thresholds = roc_curve(y, y_predictions)
-
-# Obliczanie obszaru pod krzywą ROC (AUC)
 auc = roc_auc_score(y, y_predictions)
-
-# Wykres krzywej ROC
 plt.plot(fpr, tpr, label=f'LR (AUC = {auc:.2f})')
 plt.plot([0, 1], [0, 1], 'k--')  # Linia referencyjna
 plt.xlabel('False Positive Rate')
