@@ -1,15 +1,14 @@
 # LogisticRegression
 Statistical model that models the probability of an event taking place by having the log-odds for the event be a linear combination of one or more independent variables.
 
+## How to run
+```
+python ./train.py
+```
+
 ## Data structure
-LogisticRegression.py - our implementation of logistic regression
 
-train.py - training and predicting using our logistic regression implementation
-
-train.csv - database
-
-cross_validation_experiment.py - performing cross validation
-
-feature_selection_experiment.py - selecting k features that are significant
-
-iteration_experiment.py - finding best number of iteration to optimize our model
+- `experiments` - directory with experiments such as feature_selection experiment and iteration experiment
+- `methods` - directory with methods such as cross_validation, t_test and `our implementation of logistic regression`
+- `train.py`- main file to run the project
+- `train.csv` - dataset
