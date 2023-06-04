@@ -143,6 +143,20 @@ ax.set_title('Dependence of survival on passenger class (Pclass)')
 ax.legend()
 plt.show()
 
+# Sex histogram
+grouped_data = data.groupby(['Sex', 'Survived']).size().unstack()
+fig, ax = plt.subplots()
+bar_width = 0.4
+index = np.arange(len(grouped_data.index))
+rects1 = ax.bar(index, grouped_data[0], bar_width, label="Didn't survive")
+rects2 = ax.bar(index + bar_width, grouped_data[1], bar_width, label='Survived')
+ax.set_xticks(index + bar_width / 2)
+ax.set_xticklabels(grouped_data.index)
+ax.set_ylabel('Number of people')
+ax.set_title('Dependence of survival on passenger sex')
+ax.legend()
+plt.show()
+
 # ROC curve
 fpr, tpr, thresholds = roc_curve(y, predictions)
 auc = roc_auc_score(y, predictions)
