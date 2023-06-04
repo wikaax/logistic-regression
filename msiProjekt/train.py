@@ -3,16 +3,16 @@ import pandas as pd
 import warnings
 
 from sklearn import svm
-from sklearn.model_selection import RepeatedStratifiedKFold
+from sklearn.model_selection import RepeatedStratifiedKFold, cross_val_predict
 from sklearn.impute import SimpleImputer
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, roc_curve
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, roc_curve, precision_recall_curve
 import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
 
-from msiProjekt.experiments.feature_selection_experiment import feature_selection, pca_feature_selection
+from msiProjekt.experiments.feature_selection_experiment import feature_selection
 from msiProjekt.experiments.iteration_experiment import find_best_n_iter
 from msiProjekt.methods.cross_validation_method import perform_cross_val
 from msiProjekt.methods.logistic_regression_method import LogisticRegression
@@ -48,7 +48,6 @@ rkf = RepeatedStratifiedKFold(n_splits=n_splits, n_repeats=n_repeats, random_sta
 
 # feature selection
 X_selected = feature_selection(X, y, col_names_encoded, rkf)
-X_selected_PCA = pca_feature_selection(X, y, col_names_encoded, rkf)
 
 # find and return the best number of iterations, save results to file
 # best_n_iter = find_best_n_iter(X_selected, rkf, y)
@@ -67,25 +66,51 @@ classifiers = {'LR': lr,
 # cross validation experiment
 scores = perform_cross_val(classifiers, rkf, X_selected, y)
 
-# train and predict with logistic regression on full data
+# # train and predict with logistic regression on full data
 lr.fit(X_selected, y)
 y_predictions = lr.predict(X_selected)
 
 # RESULTS ANALYSIS
 # load saved files and analyze results
 selected_features = np.load('selected_features.npy')
-selected_features_pca = np.load('selected_features_pca.npy')
 cross_validation = np.load('cross_validation_scores.npy')
 predictions = np.load('predictions.npy')
-# predictions = np.load('y_pred_LR.npy')
-n_iters_experiment = np.load('number_of_iterations_results.npz', allow_pickle=True)
+n_iters_experiment = np.load('number_of_iterations_results.npz')
+
+# feature importance
+feature_weights = lr.weights
+feature_importance = np.abs(feature_weights)
+features = ['Pclass', 'Parch', 'Fare', 'Sex_female', 'Sex_male', 'Ticket_110152', 'Ticket_113760', 'Ticket_13502',
+            'Ticket_24160', 'Ticket_2666', 'Ticket_29106', 'Ticket_347742', 'Ticket_CA. 2343', 'Ticket_PC 17572',
+            'Ticket_PC 17755', 'Cabin_B96 B98', 'Cabin_E101', 'Cabin_F33', 'Embarked_C', 'Embarked_S']
+importance = [0.016031662428189018, 0.0037305908758575074, 0.01203896354791156, 0.02567313154935162,
+              0.02567313154935162, 0.003468582182947117, 0.003987848670741845, 0.0034700750345102696,
+              0.0034445361913083387, 0.004016649766817327, 0.003540189598150869, 0.003530647252465814,
+              0.0033744402951988006, 0.0034955961743442206, 0.003418423154435658, 0.003987848670741845,
+              0.003491489266030324, 0.0034955100005501258, 0.007862900947430819, 0.007280306582351379]
+
+# bar chart
+plt.figure(figsize=(10, 6))
+plt.bar(features, importance)
+plt.xticks(rotation=90)
+plt.xlabel('Feature')
+plt.ylabel('Importance')
+plt.title('Feature Importance')
+plt.tight_layout()
+plt.show()
+
+# pie chart
+plt.pie(importance, labels=features, autopct='%1.1f%%', startangle=90)
+plt.axis('equal')
+plt.title('Ważność cech')
+plt.show()
 
 # print classification report and confusion matrix
 print(confusion_matrix(y, predictions))
 print(classification_report(y, predictions))
 
 # confusion matrix plot
-conf_mat = confusion_matrix(y, y_predictions)
+conf_mat = confusion_matrix(y, predictions)
 plt.imshow(conf_mat, interpolation='nearest', cmap=plt.cm.Blues)
 plt.title("Confusion matrix")
 plt.colorbar()
@@ -93,9 +118,19 @@ plt.xticks([0, 1], ['Expected: 0', 'Expected: 1'])
 plt.yticks([0, 1], ['Predicted: 0', 'Predicted: 1'])
 plt.show()
 
-# Group by Pclass and Survived
+# precision
+precision_0 = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[1, 0])
+precision_1 = conf_mat[1, 1] / (conf_mat[1, 1] + conf_mat[0, 1])
+
+# recall
+recall_0 = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
+recall_1 = conf_mat[1, 1] / (conf_mat[1, 1] + conf_mat[1, 0])
+
+precision0, recall0, thresholds = precision_recall_curve(y, predictions)
+precision1, recall1, thresholds = precision_recall_curve(y, predictions)
+
+# Pclass histogram
 grouped_data = data.groupby(['Pclass', 'Survived']).size().unstack()
-# Create a histogram
 fig, ax = plt.subplots()
 bar_width = 0.4
 index = np.arange(len(grouped_data.index))
@@ -104,26 +139,24 @@ rects2 = ax.bar(index + bar_width, grouped_data[1], bar_width, label='Survived')
 ax.set_xticks(index + bar_width / 2)
 ax.set_xticklabels(grouped_data.index)
 ax.set_ylabel('Number of people')
-ax.set_title('Dependence of survival on ticket class (Pclass)')
+ax.set_title('Dependence of survival on passenger class (Pclass)')
 ax.legend()
 plt.show()
 
-# ROC
-fpr, tpr, thresholds = roc_curve(y, y_predictions)
-auc = roc_auc_score(y, y_predictions)
+# ROC curve
+fpr, tpr, thresholds = roc_curve(y, predictions)
+auc = roc_auc_score(y, predictions)
 plt.plot(fpr, tpr, label=f'LR (AUC = {auc:.2f})')
-plt.plot([0, 1], [0, 1], 'k--')  # Linia referencyjna
+plt.plot([0, 1], [0, 1], 'k--')  # Reference line
 plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
-plt.title('Krzywa ROC')
+plt.title('ROC curve')
 plt.legend()
 plt.show()
 
 # print selected features
 print("Selected features:")
 print(selected_features)
-print("Selected PCA:")
-print(selected_features_pca)
 
 # print number of iters experiment results
 n_iters_keys = n_iters_experiment
