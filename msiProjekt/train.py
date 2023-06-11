@@ -69,6 +69,7 @@ scores = perform_cross_val(classifiers, rkf, X_selected, y)
 # # train and predict with logistic regression on full data
 lr.fit(X_selected, y)
 y_predictions = lr.predict(X_selected)
+np.save('predictions.npy', y_predictions)
 
 # RESULTS ANALYSIS
 # load saved files and analyze results

@@ -1,5 +1,7 @@
 import numpy as np
 from sklearn.model_selection import cross_val_score
+
+from msiProjekt.methods.cross_validation_method import perform_cross_val
 from msiProjekt.methods.logistic_regression_method import LogisticRegression
 
 
@@ -14,8 +16,9 @@ def find_best_n_iter(X, rkf, y):
 
     for n_iters in n_iters_list:
         # create clf with current value of n_iters
-        clf = LogisticRegression(lr=0.001, n_iters=n_iters)
-        scores = cross_val_score(clf, X, y, cv=rkf)
+        lr = LogisticRegression(lr=0.001, n_iters=n_iters)
+        print(f'ACC for n_iters={n_iters}')
+        scores = perform_cross_val({'LR': lr}, rkf, X, y)
         results[n_iters] = scores.mean()
 
         if results[n_iters] > best_accuracy:

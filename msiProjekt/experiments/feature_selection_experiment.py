@@ -3,6 +3,9 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
 
+from msiProjekt.methods.cross_validation_method import perform_cross_val
+
+
 def feature_selection(X, y, col_names, rkf):
     # list of n_features to find the best
     n_features_list = [5, 10, 15, 20]
@@ -21,7 +24,8 @@ def feature_selection(X, y, col_names, rkf):
         lr = LogisticRegression()
 
         # perform cross validation
-        scores = cross_val_score(lr, X_selected, y, cv=rkf)
+        print(f'ACC for {n_features} features:')
+        scores = perform_cross_val({'LR': lr}, rkf, X_selected, y)
 
         # store results
         results[n_features] = scores.mean()
