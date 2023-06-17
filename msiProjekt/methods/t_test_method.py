@@ -2,9 +2,10 @@ import numpy as np
 from scipy.stats import ttest_rel
 
 
-def t_test(results):
+def t_test():
+    cross_validation = np.load('cross_validation_scores.npy')
     alpha = 0.5
-    X = results.reshape(-1, 5)
+    X = cross_validation.reshape(-1, 5)
     n_classifiers = X.shape[1]
 
     t_matrix = np.zeros((n_classifiers, n_classifiers))

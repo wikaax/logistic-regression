@@ -6,7 +6,7 @@ from sklearn.model_selection import cross_val_score
 from msiProjekt.methods.cross_validation_method import perform_cross_val
 
 
-def feature_selection(X, y, col_names, rkf):
+def feature_selection(X, y, col_names, rkf, clf):
     # list of n_features to find the best
     n_features_list = [5, 10, 15, 20]
 
@@ -20,12 +20,7 @@ def feature_selection(X, y, col_names, rkf):
         selector = SelectKBest(score_func=f_classif, k=n_features)
         X_selected = selector.fit_transform(X, y)
 
-        # create logistic regression model
-        lr = LogisticRegression()
-
-        # perform cross validation
-        print(f'ACC for {n_features} features:')
-        scores = perform_cross_val({'LR': lr}, rkf, X_selected, y)
+        scores = perform_cross_val({'LR': clf}, rkf, X_selected, y)[0]
 
         # store results
         results[n_features] = scores.mean()
