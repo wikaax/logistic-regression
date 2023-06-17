@@ -3,12 +3,12 @@ Statistical model that models the probability of an event taking place by having
 
 ## How to run
 ```
-python ./train.py
+python ./run_simulation.py
 ```
 
 ## Data structure
 
 - `experiments` - directory with experiments such as feature_selection experiment and iteration experiment
-- `methods` - directory with methods such as cross_validation, t_test and `our implementation of logistic regression`
-- `train.py`- main file to run the project
+- `methods` - directory with methods such as cross_validation, t_test, `our implementation of logistic regression` and utils
+- `run_simulation.py`- main file to run the project
 - `train.csv` - dataset
