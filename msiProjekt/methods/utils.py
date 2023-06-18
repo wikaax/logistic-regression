@@ -24,8 +24,8 @@ def confusion_matrix_and_classification_report(cross_val):
     print(classification_report(y_test, y_pred))
 
 def precision_and_recall(cross_val):
-    precision_scores = cross_val[5]
-    recall_scores = cross_val[6]
+    precision_scores = cross_val[7]
+    recall_scores = cross_val[8]
 
     avg_precision_0 = np.mean([score[0] for score in precision_scores])
     avg_precision_1 = np.mean([score[1] for score in precision_scores])
@@ -126,36 +126,76 @@ def histograms(data):
     ax.legend()
     plt.show()
 
-def feature_reduction_and_scatter_plot(cross_val):
+def feature_reduction_and_scatter_plot(cross_val, lr, resolution=0.02):
     y_pred = cross_val[2]
     y_test = cross_val[3]
     x_test = cross_val[4]
+    x_train = cross_val[5]
+    y = cross_val[6]
 
-    # Dimension reduction using PCA
     pca = PCA(n_components=2)
-    X_reduced = pca.fit_transform(x_test)
+    # fit and transform data
+    X = pca.fit_transform(x_train)
+    X_test_pca = pca.transform(x_test)
+    lr.fit(X, y)
 
-    # Standardize the reduced features for better visualization
-    scaler = StandardScaler()
-    X_reduced = scaler.fit_transform(X_reduced)
-
-    # Set up marker generator and color map
+    # setup marker generator and color map
     markers = ('s', 'x', 'o', '^', 'v')
     colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-    cmap = ListedColormap(colors[:len(np.unique(y_test))])
+    cmap = ListedColormap(colors[:len(np.unique(y))])
 
-    # Plot scatter plot
-    plt.scatter(X_reduced[y_test == 0, 0], X_reduced[y_test == 0, 1], c='red', marker='o', label='Actual Labels 0')
-    plt.scatter(X_reduced[y_test == 1, 0], X_reduced[y_test == 1, 1], c='blue', marker='o', label='Actual Labels 1')
-    plt.scatter(X_reduced[y_pred == 0, 0], X_reduced[y_pred == 0, 1], c='lightgreen', marker='s', label='Predicted Labels 0')
-    plt.scatter(X_reduced[y_pred == 1, 0], X_reduced[y_pred == 1, 1], c='gray', marker='s', label='Predicted Labels 1')
+    # plot the decision surface
+    x1_min, x1_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    x2_min, x2_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx1, xx2 = np.meshgrid(np.arange(x1_min, x1_max, resolution),
+                           np.arange(x2_min, x2_max, resolution))
+    Z = lr.predict(np.array([xx1.ravel(), xx2.ravel()]).T)
+    Z = Z.reshape(xx1.shape)
+    plt.contourf(xx1, xx2, Z, alpha=0.4, cmap=cmap)
+    plt.xlim(xx1.min(), xx1.max())
+    plt.ylim(xx2.min(), xx2.max())
 
-    plt.xlabel('PCA1')
-    plt.ylabel('PCA2')
-    plt.legend(loc='best')
-    plt.title('Scatter Plot of Reduced Features')
+    # plot class samples
+    for idx, cl in enumerate(np.unique(y)):
+        plt.scatter(x=X[y == cl, 0],
+                    y=X[y == cl, 1],
+                    alpha=0.6,
+                    c=[cmap(idx)],
+                    edgecolor='black',
+                    marker=markers[idx],
+                    label=cl)  # plot decision regions for training set
 
+
+    plt.xlabel('PC 1')
+    plt.ylabel('PC 2')
+    plt.legend(loc='lower left')
     plt.show()
+
+    # # Dimension reduction using PCA
+    # pca = PCA(n_components=2)
+    # X_reduced = pca.fit_transform(x_test)
+    #
+    # # Standardize the reduced features for better visualization
+    # scaler = StandardScaler()
+    # X_reduced = scaler.fit_transform(X_reduced)
+    #
+    # # Set up marker generator and color map
+    # markers = ('s', 'x', 'o', '^', 'v')
+    # colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+    # cmap = ListedColormap(colors[:len(np.unique(y_test))])
+    #
+    # # Plot scatter plot
+    # plt.scatter(X_reduced[y_test == 0, 0], X_reduced[y_test == 0, 1], c='red', marker='o', label='Actual Labels 0')
+    # plt.scatter(X_reduced[y_test == 1, 0], X_reduced[y_test == 1, 1], c='blue', marker='o', label='Actual Labels 1')
+    # plt.scatter(X_reduced[y_pred == 0, 0], X_reduced[y_pred == 0, 1], c='lightgreen', marker='s', label='Predicted Labels 0')
+    # plt.scatter(X_reduced[y_pred == 1, 0], X_reduced[y_pred == 1, 1], c='gray', marker='s', label='Predicted Labels 1')
+    #
+    # plt.xlabel('PCA1')
+    # plt.ylabel('PCA2')
+    # plt.legend(loc='best')
+    # plt.title('Scatter Plot of Reduced Features')
+    #
+    # plt.show()
     # y_pred = cross_val[2]
     # y_test = cross_val[3]
     #

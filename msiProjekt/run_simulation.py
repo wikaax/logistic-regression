@@ -61,7 +61,7 @@ rkf = RepeatedStratifiedKFold(n_splits=n_splits, n_repeats=n_repeats, random_sta
 X_selected = feature_selection(X, y, col_names_encoded, rkf, lr)
 
 # find and return the best number of iterations, save results to file
-# best_n_iter = find_best_n_iter(X_selected, rkf, y)
+best_n_iter = find_best_n_iter(X_selected, rkf, y)
 
 # cross validation results
 cross_val = perform_cross_val(classifiers, rkf, X_selected, y)
@@ -69,15 +69,15 @@ cross_val = perform_cross_val(classifiers, rkf, X_selected, y)
 # RESULTS ANALYSIS
 precision_recall_scores = precision_and_recall(cross_val)
 roc_curve_plot(cross_val)
-# print('MEAN SCORES: ')
-# mean_scores(classifiers, cross_val)
-# print('ITER_EXPERIMENT RESULTS: ')
-# iter_experiment_results()
-# print('T_TEST RESULTS: ')
-# t_test()
-# print('CONFUSION MATRIX AND CLASSIFICATION REPORT: ')
-# confusion_matrix_and_classification_report(cross_val)
+print('MEAN SCORES: ')
+mean_scores(classifiers, cross_val)
+print('ITER_EXPERIMENT RESULTS: ')
+iter_experiment_results()
+print('T_TEST RESULTS: ')
+t_test()
+print('CONFUSION MATRIX AND CLASSIFICATION REPORT: ')
+confusion_matrix_and_classification_report(cross_val)
 
-# feature_selection_charts(lr)
-feature_reduction_and_scatter_plot(cross_val)
-# histograms(data)
+feature_selection_charts(lr)
+# feature_reduction_and_scatter_plot(cross_val, lr)
+histograms(data)
