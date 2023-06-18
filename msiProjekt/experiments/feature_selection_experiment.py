@@ -1,7 +1,5 @@
 import numpy as np
 from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_score
 
 from msiProjekt.methods.cross_validation_method import perform_cross_val
 
@@ -20,15 +18,15 @@ def feature_selection(X, y, col_names, rkf, clf):
         selector = SelectKBest(score_func=f_classif, k=n_features)
         X_selected = selector.fit_transform(X, y)
 
-        scores = perform_cross_val({'LR': clf}, rkf, X_selected, y)[0]
+        acc_scores = perform_cross_val({'LR': clf}, rkf, X_selected, y)[0]
 
         # store results
-        results[n_features] = scores.mean()
+        results[n_features] = acc_scores.mean()
 
         # update best results
-        if scores.mean() > best_accuracy:
+        if acc_scores.mean() > best_accuracy:
             best_n_feature = n_features
-            best_accuracy = scores.mean()
+            best_accuracy = acc_scores.mean()
 
     # select best number of features
     selector = SelectKBest(score_func=f_classif, k=best_n_feature)

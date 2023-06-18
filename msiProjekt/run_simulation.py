@@ -10,11 +10,13 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
 
 from msiProjekt.experiments.feature_selection_experiment import feature_selection
+from msiProjekt.experiments.iteration_experiment import find_best_n_iter
 from msiProjekt.methods.cross_validation_method import perform_cross_val
 from msiProjekt.methods.logistic_regression_method import LogisticRegression
 from msiProjekt.methods.t_test_method import t_test
 from msiProjekt.methods.utils import histograms, feature_reduction_and_scatter_plot, feature_selection_charts, \
-    iter_experiment_results, confusion_matrix_and_classification_report
+    iter_experiment_results, confusion_matrix_and_classification_report, mean_scores, scatter, precision_and_recall, \
+    roc_curve_plot
 
 # suppress warnings
 warnings.filterwarnings('ignore')
@@ -61,11 +63,21 @@ X_selected = feature_selection(X, y, col_names_encoded, rkf, lr)
 # find and return the best number of iterations, save results to file
 # best_n_iter = find_best_n_iter(X_selected, rkf, y)
 
-# RESULTS ANALYSIS
-t_test()
+# cross validation results
 cross_val = perform_cross_val(classifiers, rkf, X_selected, y)
-feature_selection_charts(lr)
-feature_reduction_and_scatter_plot(col_names_encoded, X_selected)
-histograms(data)
-iter_experiment_results()
-confusion_matrix_and_classification_report(cross_val)
+
+# RESULTS ANALYSIS
+precision_recall_scores = precision_and_recall(cross_val)
+roc_curve_plot(cross_val)
+# print('MEAN SCORES: ')
+# mean_scores(classifiers, cross_val)
+# print('ITER_EXPERIMENT RESULTS: ')
+# iter_experiment_results()
+# print('T_TEST RESULTS: ')
+# t_test()
+# print('CONFUSION MATRIX AND CLASSIFICATION REPORT: ')
+# confusion_matrix_and_classification_report(cross_val)
+
+# feature_selection_charts(lr)
+feature_reduction_and_scatter_plot(cross_val)
+# histograms(data)

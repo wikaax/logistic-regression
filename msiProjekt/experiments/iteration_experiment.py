@@ -17,9 +17,8 @@ def find_best_n_iter(X, rkf, y):
     for n_iters in n_iters_list:
         # create clf with current value of n_iters
         lr = LogisticRegression(lr=0.001, n_iters=n_iters)
-        print(f'ACC for n_iters={n_iters}')
-        scores = perform_cross_val({'LR': lr}, rkf, X, y)
-        results[n_iters] = scores.mean()
+        acc_scores = perform_cross_val({'LR': lr}, rkf, X, y)[0]
+        results[n_iters] = acc_scores.mean()
 
         if results[n_iters] > best_accuracy:
             best_n_iter = n_iters

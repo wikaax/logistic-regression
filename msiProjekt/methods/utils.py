@@ -1,7 +1,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.colors import ListedColormap
 from sklearn.decomposition import PCA
 from sklearn.metrics import precision_recall_curve, roc_auc_score, roc_curve, classification_report
+from sklearn.preprocessing import StandardScaler
 
 
 def confusion_matrix_and_classification_report(cross_val):
@@ -21,17 +23,25 @@ def confusion_matrix_and_classification_report(cross_val):
 
     print(classification_report(y_test, y_pred))
 
-def roc_curve_plot(conf_mat, y_pred, y_test):
-    # precision
-    precision_0 = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[1, 0])
-    precision_1 = conf_mat[1, 1] / (conf_mat[1, 1] + conf_mat[0, 1])
+def precision_and_recall(cross_val):
+    precision_scores = cross_val[5]
+    recall_scores = cross_val[6]
 
-    # recall
-    recall_0 = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
-    recall_1 = conf_mat[1, 1] / (conf_mat[1, 1] + conf_mat[1, 0])
+    avg_precision_0 = np.mean([score[0] for score in precision_scores])
+    avg_precision_1 = np.mean([score[1] for score in precision_scores])
+    avg_recall_0 = np.mean([score[0] for score in recall_scores])
+    avg_recall_1 = np.mean([score[1] for score in recall_scores])
 
-    precision0, recall0, thresholds = precision_recall_curve(y_pred, y_test)
-    precision1, recall1, thresholds = precision_recall_curve(y_pred, y_test)
+    print('AVG_PRECISION_0: %.2f' % avg_precision_0)
+    print('AVG_PRECISION_1: %.2f' % avg_precision_1)
+    print('AVG_RECALL_0: %.2f' % avg_recall_0)
+    print('AVG_RECALL_1: %.2f' % avg_recall_1)
+
+    return avg_precision_0, avg_recall_0, avg_precision_1, avg_recall_1
+
+def roc_curve_plot(cross_val):
+    y_test = cross_val[3]
+    y_pred = cross_val[2]
 
     # ROC curve
     fpr, tpr, thresholds = roc_curve(y_pred, y_test)
@@ -44,8 +54,18 @@ def roc_curve_plot(conf_mat, y_pred, y_test):
     plt.legend()
     plt.show()
 
+def mean_scores(classifiers, cross_val):
+    acc_scores = cross_val[0]
+    mean_scores = np.mean(acc_scores, axis=1)
+    std_scores = np.std(acc_scores, axis=1)
+
+    for clf_id, clf_name in enumerate(classifiers):
+        print(list(classifiers.keys())[clf_id] + ":",
+              "Mean score: %.3f" % mean_scores[clf_id],
+              "\tStd: %.3f" % std_scores[clf_id])
+
 def feature_selection_charts(lr):
-    selected_features = np.load('../selected_features.npy')
+    selected_features = np.load('selected_features.npy')
     print(selected_features)
 
     # feature importance
@@ -106,39 +126,90 @@ def histograms(data):
     ax.legend()
     plt.show()
 
-def feature_reduction_and_scatter_plot(col_names_encoded, X_selected):
-    # dimension reduction using PCA
+def feature_reduction_and_scatter_plot(cross_val):
+    y_pred = cross_val[2]
+    y_test = cross_val[3]
+    x_test = cross_val[4]
+
+    # Dimension reduction using PCA
     pca = PCA(n_components=2)
-    X_reduced = pca.fit_transform(X_selected)
+    X_reduced = pca.fit_transform(x_test)
 
-    # feature weights for pc1
-    feature_weights_pc1 = pca.components_[0]
+    # Standardize the reduced features for better visualization
+    scaler = StandardScaler()
+    X_reduced = scaler.fit_transform(X_reduced)
 
-    # feature weights for pc2
-    feature_weights_pc2 = pca.components_[1]
+    # Set up marker generator and color map
+    markers = ('s', 'x', 'o', '^', 'v')
+    colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+    cmap = ListedColormap(colors[:len(np.unique(y_test))])
 
-    # pc1 feature importace
-    top_features_pc1 = np.argsort(np.abs(feature_weights_pc1))[::-1][:5]
-    print("Top features for PC1:")
-    for feature_idx in top_features_pc1:
-        print(col_names_encoded[feature_idx])
+    # Plot scatter plot
+    plt.scatter(X_reduced[y_test == 0, 0], X_reduced[y_test == 0, 1], c='red', marker='o', label='Actual Labels 0')
+    plt.scatter(X_reduced[y_test == 1, 0], X_reduced[y_test == 1, 1], c='blue', marker='o', label='Actual Labels 1')
+    plt.scatter(X_reduced[y_pred == 0, 0], X_reduced[y_pred == 0, 1], c='lightgreen', marker='s', label='Predicted Labels 0')
+    plt.scatter(X_reduced[y_pred == 1, 0], X_reduced[y_pred == 1, 1], c='gray', marker='s', label='Predicted Labels 1')
 
-    # pc2 feature importace
-    top_features_pc2 = np.argsort(np.abs(feature_weights_pc2))[::-1][:5]
-    print("Top features for PC2:")
-    for feature_idx in top_features_pc2:
-        print(col_names_encoded[feature_idx])
+    plt.xlabel('PCA1')
+    plt.ylabel('PCA2')
+    plt.legend(loc='best')
+    plt.title('Scatter Plot of Reduced Features')
 
-    plt.scatter(X_reduced[:, 0], X_reduced[:, 1])
-    plt.xlabel('PC1')
-    plt.ylabel('PC2')
-    plt.title('Scatter Plot after PCA')
     plt.show()
+    # y_pred = cross_val[2]
+    # y_test = cross_val[3]
+    #
+    #
+    # # setup marker generator and color m
+    # markers = ('s', 'x', 'o', '^', 'v')
+    # colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+    # cmap = ListedColormap(colors[:len(np.unique(y_pred))])
+    #
+    # # dimension reduction using PCA
+    # pca = PCA(n_components=2)
+    # X_reduced = pca.fit_transform(X_selected)
+
+
+
+    # # feature weights for pc1
+    # feature_weights_pc1 = pca.components_[0]
+    #
+    # # feature weights for pc2
+    # feature_weights_pc2 = pca.components_[1]
+    #
+    # # pc1 feature importace
+    # top_features_pc1 = np.argsort(np.abs(feature_weights_pc1))[::-1][:5]
+    # print("Top features for PC1:")
+    # for feature_idx in top_features_pc1:
+    #     print(col_names_encoded[feature_idx])
+    #
+    # # pc2 feature importace
+    # top_features_pc2 = np.argsort(np.abs(feature_weights_pc2))[::-1][:5]
+    # print("Top features for PC2:")
+    # for feature_idx in top_features_pc2:
+    #     print(col_names_encoded[feature_idx])
+
+    # plt.scatter(X_reduced[:, 0], X_reduced[:, 1])
+    # plt.xlabel('PC1')
+    # plt.ylabel('PC2')
+    # plt.title('Scatter Plot after PCA')
+    # plt.show()
 
 def iter_experiment_results():
-    n_iters_experiment = np.load('../number_of_iterations_results.npz')
+    n_iters_experiment = np.load('number_of_iterations_results.npz')
 
     # print number of iters experiment results
     n_iters_keys = n_iters_experiment
     for key in n_iters_keys:
         print(f"Results for {key}: %.3f" % n_iters_experiment[key])
+
+def scatter(cross_val):
+    x_test = cross_val[4]
+    y_pred = cross_val[2]
+
+    plt.figure(figsize=(6, 6))
+    plt.scatter(x_test[:, 0], x_test[:, 1], c=y_pred, cmap='viridis')
+    plt.title(f'Scatter Plot')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Surivived')
+    plt.show()
