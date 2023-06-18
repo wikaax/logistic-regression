@@ -15,7 +15,7 @@ from msiProjekt.methods.cross_validation_method import perform_cross_val
 from msiProjekt.methods.logistic_regression_method import LogisticRegression
 from msiProjekt.methods.t_test_method import t_test
 from msiProjekt.methods.utils import histograms, feature_reduction_and_scatter_plot, feature_selection_charts, \
-    iter_experiment_results, confusion_matrix_and_classification_report, mean_scores, scatter, precision_and_recall, \
+    iter_experiment_results, confusion_matrix_and_classification_report, mean_scores, precision_and_recall, \
     roc_curve_plot
 
 # suppress warnings
@@ -68,16 +68,16 @@ cross_val = perform_cross_val(classifiers, rkf, X_selected, y)
 
 # RESULTS ANALYSIS
 precision_recall_scores = precision_and_recall(cross_val)
-roc_curve_plot(cross_val)
 print('MEAN SCORES: ')
 mean_scores(classifiers, cross_val)
 print('ITER_EXPERIMENT RESULTS: ')
 iter_experiment_results()
 print('T_TEST RESULTS: ')
 t_test()
-print('CONFUSION MATRIX AND CLASSIFICATION REPORT: ')
+print('CONFUSION MATRIX AND CLASSIFICATION REPORT FOR FOLD 10: ')
 confusion_matrix_and_classification_report(cross_val)
+roc_curve_plot(cross_val)
 
 feature_selection_charts(lr)
-# feature_reduction_and_scatter_plot(cross_val, lr)
 histograms(data)
+# feature_reduction_and_scatter_plot(cross_val, lr)

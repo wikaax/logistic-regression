@@ -2,8 +2,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import ListedColormap
 from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
 from sklearn.metrics import precision_recall_curve, roc_auc_score, roc_curve, classification_report
-from sklearn.preprocessing import StandardScaler
 
 
 def confusion_matrix_and_classification_report(cross_val):
@@ -23,6 +23,7 @@ def confusion_matrix_and_classification_report(cross_val):
 
     print(classification_report(y_test, y_pred))
 
+
 def precision_and_recall(cross_val):
     precision_scores = cross_val[7]
     recall_scores = cross_val[8]
@@ -39,6 +40,7 @@ def precision_and_recall(cross_val):
 
     return avg_precision_0, avg_recall_0, avg_precision_1, avg_recall_1
 
+
 def roc_curve_plot(cross_val):
     y_test = cross_val[3]
     y_pred = cross_val[2]
@@ -54,6 +56,7 @@ def roc_curve_plot(cross_val):
     plt.legend()
     plt.show()
 
+
 def mean_scores(classifiers, cross_val):
     acc_scores = cross_val[0]
     mean_scores = np.mean(acc_scores, axis=1)
@@ -63,6 +66,7 @@ def mean_scores(classifiers, cross_val):
         print(list(classifiers.keys())[clf_id] + ":",
               "Mean score: %.3f" % mean_scores[clf_id],
               "\tStd: %.3f" % std_scores[clf_id])
+
 
 def feature_selection_charts(lr):
     selected_features = np.load('selected_features.npy')
@@ -89,13 +93,14 @@ def feature_selection_charts(lr):
     plt.tight_layout()
     plt.show()
 
-    # Pie chart with color map
+    # pie chart with color map
     colors = plt.cm.tab20b(range(len(features)))
     plt.figure(figsize=(8, 8))
     plt.pie(importance, labels=features, autopct='%1.1f%%', startangle=90, colors=colors)
     plt.axis('equal')
     plt.title('Ważność cech')
     plt.show()
+
 
 def histograms(data):
     # Pclass histogram
@@ -126,12 +131,52 @@ def histograms(data):
     ax.legend()
     plt.show()
 
+
+def iter_experiment_results():
+    n_iters_experiment = np.load('number_of_iterations_results.npz')
+
+    # print number of iters experiment results
+    n_iters_keys = n_iters_experiment
+    for key in n_iters_keys:
+        print(f"Results for {key}: %.3f" % n_iters_experiment[key])
+
+
+def scatter(cross_val):
+    x_test = cross_val[4]
+    y_pred = cross_val[2]
+
+    plt.figure(figsize=(6, 6))
+    plt.scatter(x_test[:, 0], x_test[:, 1], c=y_pred, cmap='viridis')
+    plt.title(f'Scatter Plot')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Surivived')
+    plt.show()
+
+
 def feature_reduction_and_scatter_plot(cross_val, lr, resolution=0.02):
     y_pred = cross_val[2]
     y_test = cross_val[3]
-    x_test = cross_val[4]
     x_train = cross_val[5]
     y = cross_val[6]
+    x_test = cross_val[4]
+
+    # apply dimensionality reduction using t-SNE
+    tsne = TSNE(n_components=2, random_state=42)
+    X_tsne = tsne.fit_transform(x_train)
+
+    # set up marker generator and color map
+    markers = ('s', 'o')
+    colors = ('blue', 'red')
+
+    plt.figure(figsize=(8, 6))
+    for idx, label in enumerate([y_test, y_pred]):
+        plt.scatter(X_tsne[:len(label), 0], X_tsne[:len(label), 1], c=label, cmap=ListedColormap(colors[idx]),
+                    marker=markers[idx], alpha=0.6)
+
+    plt.xlabel('Dimension 1')
+    plt.ylabel('Dimension 2')
+    plt.legend(['True', 'Predicted'])
+    plt.show()
 
     pca = PCA(n_components=2)
     # fit and transform data
@@ -144,17 +189,6 @@ def feature_reduction_and_scatter_plot(cross_val, lr, resolution=0.02):
     colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
     cmap = ListedColormap(colors[:len(np.unique(y))])
 
-    # plot the decision surface
-    x1_min, x1_max = X[:, 0].min() - 1, X[:, 0].max() + 1
-    x2_min, x2_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-    xx1, xx2 = np.meshgrid(np.arange(x1_min, x1_max, resolution),
-                           np.arange(x2_min, x2_max, resolution))
-    Z = lr.predict(np.array([xx1.ravel(), xx2.ravel()]).T)
-    Z = Z.reshape(xx1.shape)
-    plt.contourf(xx1, xx2, Z, alpha=0.4, cmap=cmap)
-    plt.xlim(xx1.min(), xx1.max())
-    plt.ylim(xx2.min(), xx2.max())
-
     # plot class samples
     for idx, cl in enumerate(np.unique(y)):
         plt.scatter(x=X[y == cl, 0],
@@ -165,13 +199,12 @@ def feature_reduction_and_scatter_plot(cross_val, lr, resolution=0.02):
                     marker=markers[idx],
                     label=cl)  # plot decision regions for training set
 
-
     plt.xlabel('PC 1')
     plt.ylabel('PC 2')
     plt.legend(loc='lower left')
     plt.show()
 
-    # # Dimension reduction using PCA
+    # Dimension reduction using PCA
     # pca = PCA(n_components=2)
     # X_reduced = pca.fit_transform(x_test)
     #
@@ -183,12 +216,13 @@ def feature_reduction_and_scatter_plot(cross_val, lr, resolution=0.02):
     # markers = ('s', 'x', 'o', '^', 'v')
     # colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
     # cmap = ListedColormap(colors[:len(np.unique(y_test))])
-    #
-    # # Plot scatter plot
+    # print(X_reduced)
+
+    # Plot scatter plot
     # plt.scatter(X_reduced[y_test == 0, 0], X_reduced[y_test == 0, 1], c='red', marker='o', label='Actual Labels 0')
-    # plt.scatter(X_reduced[y_test == 1, 0], X_reduced[y_test == 1, 1], c='blue', marker='o', label='Actual Labels 1')
-    # plt.scatter(X_reduced[y_pred == 0, 0], X_reduced[y_pred == 0, 1], c='lightgreen', marker='s', label='Predicted Labels 0')
-    # plt.scatter(X_reduced[y_pred == 1, 0], X_reduced[y_pred == 1, 1], c='gray', marker='s', label='Predicted Labels 1')
+    # plt.scatter(X_reduced[y_test == 1, 0], X_reduced[y_test == 1, 1], c='red', marker='o', label='Actual Labels 1')
+    # plt.scatter(X_reduced[y_pred == 0, 0], X_reduced[y_pred == 0, 1], c='blue', marker='s', label='Predicted Labels 0')
+    # plt.scatter(X_reduced[y_pred == 1, 0], X_reduced[y_pred == 1, 1], c='blue', marker='s', label='Predicted Labels 1')
     #
     # plt.xlabel('PCA1')
     # plt.ylabel('PCA2')
@@ -208,8 +242,6 @@ def feature_reduction_and_scatter_plot(cross_val, lr, resolution=0.02):
     # # dimension reduction using PCA
     # pca = PCA(n_components=2)
     # X_reduced = pca.fit_transform(X_selected)
-
-
 
     # # feature weights for pc1
     # feature_weights_pc1 = pca.components_[0]
@@ -234,22 +266,3 @@ def feature_reduction_and_scatter_plot(cross_val, lr, resolution=0.02):
     # plt.ylabel('PC2')
     # plt.title('Scatter Plot after PCA')
     # plt.show()
-
-def iter_experiment_results():
-    n_iters_experiment = np.load('number_of_iterations_results.npz')
-
-    # print number of iters experiment results
-    n_iters_keys = n_iters_experiment
-    for key in n_iters_keys:
-        print(f"Results for {key}: %.3f" % n_iters_experiment[key])
-
-def scatter(cross_val):
-    x_test = cross_val[4]
-    y_pred = cross_val[2]
-
-    plt.figure(figsize=(6, 6))
-    plt.scatter(x_test[:, 0], x_test[:, 1], c=y_pred, cmap='viridis')
-    plt.title(f'Scatter Plot')
-    plt.xlabel('Feature 1')
-    plt.ylabel('Surivived')
-    plt.show()
